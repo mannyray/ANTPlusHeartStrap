@@ -7,12 +7,14 @@ class TestAntConnectionApp extends Application.AppBase
 {
     var timer = new Ui.Timer.Timer();
     var sensor;
+    var startTime = 0;
 
     //-------------------------------------------
     function initialize() 
     {
         AppBase.initialize();
-        timer.start( method(:onTimerTic),3000,true);
+        timer.start( method(:onTimerTic),100,true);
+        startTime = System.getTimer();
     }
 
     //---------------------------------
@@ -24,7 +26,10 @@ class TestAntConnectionApp extends Application.AppBase
         }
         else
         {
-            addMsg("tic cMsg=" + sensor.cMsg);
+            var latestHeartData = sensor.popLatestHeartData();
+            if( latestHeartData != null ){
+                addMsg(latestHeartData.getDebugString(startTime));
+            }
         }
         Ui.requestUpdate();
     }
@@ -32,8 +37,7 @@ class TestAntConnectionApp extends Application.AppBase
     //-------------------------------------------
     function onStart(state) 
     {
-        //sensor = new SensorSimple(SensorSimple.DEV_TRACKER);
-        sensor = new SensorSimple(SensorSimple.DEV_FOOTPOD);
+        sensor = new HeartStrapSensor();
     }
 
     //-------------------------------------------

@@ -4,21 +4,34 @@ using Toybox.System as Sys;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-class SensorSimple extends Ant.GenericChannel 
+class HeartStrapSensor extends Ant.GenericChannel 
 {
     //---------------------------------
-    static enum {    //devtype, period
-        DEV_TEMPE,   //=25, 65535 or 8192
-        DEV_TRACKER, //=41, 2048
-        DEV_HR,      //=120, 8070
-        DEV_FOOTPOD, //=124, 16268
-        }
 
-    static var rgDevType = [25,41,120,124];
-    static var rgDevName = ["Tempe","Tracker","HR","FootPod"];
-    static var rgDevPeriod = [65535,2048,8070,16268];
+    static var rgDevType = 120;
+    static var rgDevName = "HR";
+    // four times a second. Maximum rate as defined in 
+    // "ANT+ Device Profile HEART RATE MONITOR" document
+    static var rgDevPeriod = 8070; 
 
     hidden var chanAssign;
+    var startTime = 0;
+
+    /*
+    Two separate variables for storing incoming HeartData.
+    
+    The first is for interfacing with users of the HeartStrapSensor
+    class where once they copy a specific heartdata via popLatestHeartData() 
+    they can no longer access it again meaning they do not have
+    to worry if the information is the latest - if there is latest, fresh 
+    data then access it via popLatestHeartData() and otherwise get a null.
+    
+    The second is for internal use mainly to see track if the ant+ heart strap
+    is returning the same data as previously. If it is the same data then we keep the
+    previousHeartData the same and do not refresh the returnHeartData.
+    */
+    var returnHeartData = null;
+    var previousHeartData = null;
 
     var searching;
     var deviceCfg;
@@ -28,10 +41,11 @@ class SensorSimple extends Ant.GenericChannel
     var cMsg = 0;
 
     //-----------------------------------------------------
-    function initialize(iDevType) 
+    function initialize() 
     {
-        addMsg("Sensor - " + rgDevName[iDevType]);
+        addMsg("Sensor - " + rgDevName);
         idSearch = 0;
+        startTime = System.getTimer();
 
         // Get the channel
         chanAssign = new Ant.ChannelAssignment(
@@ -45,9 +59,9 @@ class SensorSimple extends Ant.GenericChannel
         // Set the configuration
         deviceCfg = new Ant.DeviceConfig( {
             :deviceNumber => idSearch,                 //Wildcard our search
-            :deviceType => rgDevType[iDevType],
+            :deviceType => rgDevType,
             :transmissionType => 0,
-            :messagePeriod => rgDevPeriod[iDevType],
+            :messagePeriod => rgDevPeriod,
             :radioFrequency => 57,              //Ant+ Frequency
             :searchTimeoutLowPriority => iTimeout,    //Timeout in 25s
             :searchThreshold => 0} );           //Pair to all transmitting sensors
@@ -81,6 +95,13 @@ class SensorSimple extends Ant.GenericChannel
     }
 
     //-----------------------------------------------------
+    function popLatestHeartData() as HeartData{
+        var tmp = returnHeartData;
+        returnHeartData = null;
+        return tmp;
+    }
+
+    //-----------------------------------------------------
     function onMessage(msg) 
     {
         //addMsg("onMessage");
@@ -98,6 +119,28 @@ class SensorSimple extends Ant.GenericChannel
                 addMsg("connected: " + antid);
             }
             cMsg = (cMsg + 1) %1000;
+
+            var heartData = new HeartData(payload,previousHeartData);
+            if( previousHeartData != null){
+                
+                // we check for previousHeartData being different from new heartData
+                // in case we are being sent repeat data from the ant+ strap
+                if(!heartData.isEqualTo(previousHeartData)){
+                    previousHeartData = heartData;
+                    returnHeartData = heartData;
+                    Sys.println(heartData.getDebugString(startTime));
+                }
+                else{
+                    returnHeartData = null;
+                    var currentTimeSinceStart = ( (Sys.getTimer()-startTime)/1000.0  ).format("%.2f");
+                    Sys.println( currentTimeSinceStart + " -  NO UPDATE" );
+                }
+            }
+            else{
+                // only happens at the very beginning upon our first heart beat recording
+                previousHeartData = heartData;
+                returnHeartData = heartData;
+            }
         } 
         else if(Ant.MSG_ID_CHANNEL_RESPONSE_EVENT == msg.messageId) 
         {
