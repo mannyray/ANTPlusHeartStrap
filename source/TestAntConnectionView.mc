@@ -38,8 +38,7 @@ class TestAntConnectionView extends Ui.View
         dc.setColor(Gfx.COLOR_WHITE,Gfx.COLOR_BLACK);
         dc.clear();
         
-        var fnt = Gfx.FONT_MEDIUM;
-        fnt = Gfx.FONT_SMALL;
+        var fnt = Gfx.FONT_XTINY;
         var cyLine = dc.getFontHeight(fnt);
         var y = dc.getHeight() - cyLine - cyLine;
         
