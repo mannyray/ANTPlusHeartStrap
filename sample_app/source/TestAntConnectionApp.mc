@@ -1,5 +1,6 @@
 using Toybox.Application;
 using Toybox.WatchUi as Ui;
+import Toybox.Lang;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -17,10 +18,15 @@ class TestAntConnectionApp extends Application.AppBase
         startTime = System.getTimer();
     }
 
+    function debugString(heartData as ANTPlusHeartRateSensor.HeartData) as String{
+        var referenceTimeDifference = ( (heartData.getRegisterTime()-startTime)/1000.0  ).format("%.2f");// in seconds
+        return heartData.getCurrentBeatCount()+"-"+referenceTimeDifference+"-"+heartData.getHeartRate()+"-"+heartData.getTimeDifference();
+    }
+
     //---------------------------------
-    function onTimerTic() //every second
+    function onTimerTic() //every 100 milliseconds
     {
-        if (sensor.searching)
+        if (sensor.searchingForSensor())
         {
             addMsg("searching...");
         }
@@ -28,7 +34,7 @@ class TestAntConnectionApp extends Application.AppBase
         {
             var latestHeartData = sensor.popLatestHeartData();
             if( latestHeartData != null ){
-                addMsg(latestHeartData.getDebugString(startTime));
+                addMsg(debugString(latestHeartData));
             }
         }
         Ui.requestUpdate();
@@ -37,14 +43,13 @@ class TestAntConnectionApp extends Application.AppBase
     //-------------------------------------------
     function onStart(state) 
     {
-        sensor = new HeartStrapSensor();
+        sensor = new ANTPlusHeartRateSensor.HeartStrapSensor();
     }
 
     //-------------------------------------------
     function onStop(state) 
     {
-        //sensor.closeSensor();
-        sensor.release();
+        sensor.closeSensor();
     }
 
     //-------------------------------------------
