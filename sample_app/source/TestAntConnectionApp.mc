@@ -10,13 +10,23 @@ class TestAntConnectionApp extends Application.AppBase
     var sensor;
     var startTime = 0;
 
+    var isAutomaticCallBackEnabled = false;
+
     //-------------------------------------------
     function initialize() 
     {
         AppBase.initialize();
-        timer.start( method(:onTimerTic),100,true);
+        if(isAutomaticCallBackEnabled == false){
+            timer.start( method(:onTimerTic),100,true);
+        }
         startTime = System.getTimer();
     }
+    
+    function callbackFunction(heartData as ANTPlusHeartRateSensor.HeartData) as Void{
+        // addMsg calls Ui.requestUpdate();
+        addMsg(debugString(heartData));
+    }
+    
 
     function debugString(heartData as ANTPlusHeartRateSensor.HeartData) as String{
         var referenceTimeDifference = ( (heartData.getRegisterTime()-startTime)/1000.0  ).format("%.2f");// in seconds
@@ -28,6 +38,7 @@ class TestAntConnectionApp extends Application.AppBase
     {
         if (sensor.searchingForSensor())
         {
+            // calls Ui.requestUpdate()
             addMsg("searching...");
         }
         else
@@ -37,13 +48,15 @@ class TestAntConnectionApp extends Application.AppBase
                 addMsg(debugString(latestHeartData));
             }
         }
-        Ui.requestUpdate();
     }
 
     //-------------------------------------------
     function onStart(state) 
     {
         sensor = new ANTPlusHeartRateSensor.HeartStrapSensor();
+        if(isAutomaticCallBackEnabled){
+            sensor.setCallback(method(:callbackFunction));
+        }
     }
 
     //-------------------------------------------
