@@ -1,6 +1,7 @@
 using Toybox.Ant;
 using Toybox.Time;
 import Toybox.Lang;
+typedef Method as Toybox.Lang.Method;
 
 module ANTPlusHeartRateSensor {
 
@@ -40,6 +41,8 @@ module ANTPlusHeartRateSensor {
         hidden var antid as Number=0;
         hidden var cMsg as Number = 0;
 
+        hidden var callbackFunction = null;
+
         //-----------------------------------------------------
         function initialize() 
         {
@@ -70,6 +73,22 @@ module ANTPlusHeartRateSensor {
         }
 
         //-----------------------------------------------------
+        // Call immediately after initialize constructor to allow for the option
+        // for a user define `callback` method to be called immediately when new
+        // data is recieved from the heart sensor. In the case the user, does not want 
+        // an immediate callback they can then proceed with using popLatestHeartData().
+        // If this function is called, then popLatestHeartData will always return null.
+        //
+        // If you call setCallBack with `null` as argument then immediate callback will 
+        // not be used and instead user will have to rely on popLatestHeartData().
+        function setCallback(callback as Method(heartData as HeartData) as Void) as Void{
+            callbackFunction = callback;
+
+            // to cancel out a potential final call to popLatestHeartData()
+            returnHeartData = null;
+        }
+
+        //-----------------------------------------------------
         function searchingForSensor() as Boolean{
             return searching;
         }
@@ -90,9 +109,14 @@ module ANTPlusHeartRateSensor {
 
         //-----------------------------------------------------
         function popLatestHeartData() as HeartData{
-            var tmp = returnHeartData;
-            returnHeartData = null;
-            return tmp;
+            if(callbackFunction == null){
+                var tmp = returnHeartData;
+                returnHeartData = null;
+                return tmp;
+            }
+            else{
+                return null;
+            }
         }
 
         //-----------------------------------------------------
@@ -119,7 +143,13 @@ module ANTPlusHeartRateSensor {
                     // in case we are being sent repeat data from the ant+ strap
                     if(!heartData.isEqualTo(previousHeartData)){
                         previousHeartData = heartData;
-                        returnHeartData = heartData;
+                        if( callbackFunction == null){
+                            returnHeartData = heartData;
+                        }
+                        else{
+                            callbackFunction.invoke(heartData);
+                        }
+                        
                     }
                     else{
                         returnHeartData = null;
@@ -128,7 +158,12 @@ module ANTPlusHeartRateSensor {
                 else{
                     // only happens at the very beginning upon our first heart beat recording
                     previousHeartData = heartData;
-                    returnHeartData = heartData;
+                    if( callbackFunction == null){
+                        returnHeartData = heartData;
+                    }
+                    else{
+                        callbackFunction.invoke(heartData);
+                    }
                 }
             } 
             else if(Ant.MSG_ID_CHANNEL_RESPONSE_EVENT == msg.messageId) 

@@ -53,6 +53,7 @@ The library (or as Garmin calls them monkey barrels) is located in `ANTPlustHear
     {
         if (sensor.searchingForSensor())
         {
+            // calls Ui.requestUpdate()
             addMsg("searching...");
         }
         else
@@ -62,7 +63,6 @@ The library (or as Garmin calls them monkey barrels) is located in `ANTPlustHear
                 addMsg(debugString(latestHeartData));
             }
         }
-        Ui.requestUpdate();
     }
    ```
    where once connected (upon `sensor.searchingForSensor()` evaluating to `false`), we pop the latest heart beat data (if it is available) via `popLatestHeartData()` and do something with it. No information can be available if our sensor is returning the same heart beat event information (due to sensor returning information four times a second which may be more frequent than your heart rate) or we are pinging the sensor via `onTimerTic` more frequently than available information ( in our case every `100 milliseconds` compared to sensor communicating every `250 milliseconds`).   In our case, we just print some debug information via function:
@@ -84,6 +84,36 @@ the current heart beat count, the time (in seconds) from app start, the heart ra
    ![](assets/running_app.gif)
 
 6. Now that you have the basics, you can either build on top of the `sample_app` or import the library to your own code and continue your own adventure!
+
+### Library usage addendum
+
+The above instructions are for a setup where a separate checker that runs every `100 milliseconds` ( as defined in `timer.start( method(:onTimerTic),100,true);`) pops the latest data that has arrived from sensor via `popLatestHeartData()`. However, this may not desirable for the user if they don't want to potentially wait up to `100 milliseconds` after the data has already arrived before calling `popLatestHeartData()`. For this, we create a callback approach so that our sensor code immediately calls our desired function upon recieving fresh data. We would thus replace step (3) above with:
+
+3. Upon starting the app, we create the sensor object:
+      
+   ```
+   function onStart(state) 
+   {
+      sensor = new ANTPlusHeartRateSensor.HeartStrapSensor();
+      sensor.setCallback(method(:callbackFunction));
+   }
+   ```
+   
+   where we define the callback function as
+   
+   ```
+   function callbackFunction(heartData as ANTPlusHeartRateSensor.HeartData) as Void{
+        // addMsg calls Ui.requestUpdate();
+        addMsg(debugString(heartData));
+   }
+   ```
+   
+   with `debugString` defined above.
+   
+Using this approach, we don't have to call a function `onTimerTic` every `100 milliseconds`, but will call `callbackFunction` only once fresh heart beat data comes in from the heart beat sensor which is set to communicate at a rate of four times a second with the app. For a heart rate of 60 beats per minute that means that only one of the four communications will give fresh heart beat data meaning `callBackFunction` is called once a second. Thus we have reduced functions calls from 10 times a second to one a second.
+
+To toggle between the two approaches in `sample_app`, modify boolean `isAutomaticCallBackEnabled` in `sample_app/source/TestAntConnectionApp.mc`.
+
 
 ## Details and reasoning about the code
 
