@@ -4,7 +4,7 @@ using Toybox.Graphics as Gfx;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-var rgmsg = ["Press a button","or tap the screen","to see button","and touch events","","", ""];
+var rgmsg = [""];
 var cMsg = 0;
 
 //-----------------------------------------------------
@@ -14,7 +14,7 @@ function addMsg(str)
     str = cMsg + ": " + str;
     Sys.println(str);
     rgmsg.add(str);
-    if (rgmsg.size() > 10)
+    if (rgmsg.size() > 7)
     {
         rgmsg.remove(rgmsg[0]);
     }
@@ -25,11 +25,29 @@ function addMsg(str)
 //-----------------------------------------------------------------------------
 class TestAntConnectionView extends Ui.View 
 {
+    var counter = 0;
+    var setupReadyFunction = null;
 
     //-----------------------------------------------------
-    function initialize() 
+    function initialize(callback as Method(automaticCallBack as Toybox.Lang.Boolean, everyCommunicationEvent as Toybox.Lang.Boolean) as Void) 
     {
+        setupReadyFunction = callback;
         View.initialize();
+    }
+
+    function onShow(){
+        if(counter == 0){
+            var menu = new Ui.Menu();
+            var delegate;
+            menu.setTitle("Menu");
+            menu.addItem("100ms ping", :one_hundred_ping);
+            menu.addItem("callback only new event", :callback_approach);
+            menu.addItem("callback every event", :callback_approach_every);
+            menu.addItem("Exit", :exit);
+            delegate = new MyMenuDelegate(setupReadyFunction);
+            Ui.pushView(menu, delegate, WatchUi.SLIDE_RIGHT);
+            counter++;
+        }
     }
 
     //-----------------------------------------------------
@@ -40,13 +58,14 @@ class TestAntConnectionView extends Ui.View
         
         var fnt = Gfx.FONT_XTINY;
         var cyLine = dc.getFontHeight(fnt);
-        var y = dc.getHeight() - cyLine - cyLine;
+        var y = dc.getHeight() - cyLine*3;
         
         for (var i = rgmsg.size()-1; i >= 0; i--)
         {
             dc.drawText(dc.getWidth()/2, y, fnt, rgmsg[i], Gfx.TEXT_JUSTIFY_CENTER);
             y -= cyLine;
         }
-    }
 
+        dc.drawText(dc.getWidth()/2, 40, fnt, "msg#:H#-t(s)-HR-HRV(ms)", Gfx.TEXT_JUSTIFY_CENTER);
+    }
 }

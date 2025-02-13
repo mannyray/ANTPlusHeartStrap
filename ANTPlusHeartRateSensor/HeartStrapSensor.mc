@@ -41,6 +41,8 @@ module ANTPlusHeartRateSensor {
         hidden var antid as Number=0;
         hidden var cMsg as Number = 0;
 
+        hidden var returnEachCommunicationEvent = false;
+
         hidden var callbackFunction = null;
 
         //-----------------------------------------------------
@@ -81,8 +83,13 @@ module ANTPlusHeartRateSensor {
         //
         // If you call setCallBack with `null` as argument then immediate callback will 
         // not be used and instead user will have to rely on popLatestHeartData().
-        function setCallback(callback as Method(heartData as HeartData) as Void) as Void{
+        //
+        // callEachEvent is a boolean. If true, then we return heart data regardless if it is
+        // new or not
+        function setCallback(callback as Method(heartData as HeartData) as Void, callEachEvent as Toybox.Lang.Boolean) as Void{
             callbackFunction = callback;
+
+            returnEachCommunicationEvent = callEachEvent;
 
             // to cancel out a potential final call to popLatestHeartData()
             returnHeartData = null;
@@ -149,9 +156,13 @@ module ANTPlusHeartRateSensor {
                         else{
                             callbackFunction.invoke(heartData);
                         }
-                        
                     }
                     else{
+                        if (returnEachCommunicationEvent and callbackFunction!=null){
+                            // the data is stale, but due to returnEachCommunicationEvent,
+                            // we pipe it back anyways
+                            callbackFunction.invoke(heartData);
+                        }
                         returnHeartData = null;
                     }
                 }
