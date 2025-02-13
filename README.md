@@ -96,7 +96,7 @@ The above instructions are for a setup where a separate checker that runs every 
    function onStart(state) 
    {
       sensor = new ANTPlusHeartRateSensor.HeartStrapSensor();
-      sensor.setCallback(method(:callbackFunction));
+      sensor.setCallback(method(:callbackFunction),returnEachCommunicationEvent);
    }
    ```
    
@@ -109,11 +109,30 @@ The above instructions are for a setup where a separate checker that runs every 
    }
    ```
    
-   with `debugString` defined above.
+   with `debugString` defined above. Boolean `returnEachCommunicationEvent` is true if you want the callback to be called back with every heart beat data that is returned from the strap which happens at frequency of every `250`ms, regardless if the data is repeat or not. We set  `returnEachCommunicationEvent` to false if you only want call backs when there is new heart beat data. The only real use of setting `returnEachCommunicationEvent` to true is if you care to determine the exact time stamps of when the heart strap is communicating at which can be determined via `heartData.getRegisterTime()`.
    
 Using this approach, we don't have to call a function `onTimerTic` every `100 milliseconds`, but will call `callbackFunction` only once fresh heart beat data comes in from the heart beat sensor which is set to communicate at a rate of four times a second with the app. For a heart rate of 60 beats per minute that means that only one of the four communications will give fresh heart beat data meaning `callBackFunction` is called once a second. Thus we have reduced functions calls from 10 times a second to one a second.
 
-To toggle between the two approaches in `sample_app`, modify boolean `isAutomaticCallBackEnabled` in `sample_app/source/TestAntConnectionApp.mc`.
+To toggle between the approaches in `sample_app`, you can fire up the app and choose the following:
+
+
+<style>
+table th:first-of-type {
+    width: 75%;
+}
+table th:nth-of-type(2) {
+    width: 50%;
+}
+</style>
+
+| Description  | Demo|
+| ------------- | ------------- |
+| <center><img src="assets/demo/every_100.gif" width=75%></center>  | Pinging the ANTPlusHeartRateSensor object every `100`ms to see if there is new data saved from the heart strap| 
+| <center><img src="assets/demo/callback_new.gif" width=75%></center> | Setting up a call back option with `ANTPlusHeartRateSensor` to only get called with new data  | 
+| <center><img src="assets/demo/callback_every.gif" width=75%></center> | Setting up a call back option with `ANTPlusHeartRateSensor` to get called back with every strap communication event (every `250`ms)   |
+
+
+
 
 
 ## Details and reasoning about the code
