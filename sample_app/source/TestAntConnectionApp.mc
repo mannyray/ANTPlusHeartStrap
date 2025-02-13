@@ -11,6 +11,8 @@ class TestAntConnectionApp extends Application.AppBase
     var sensor;
     var startTime = 0;
 
+    var previousBeatNumber = null;
+
     var isAutomaticCallBackEnabled = false;
     var forCallBackreturnEachCommunicationEvent = false;
     var menuBeingDecidedOn = true;
@@ -46,7 +48,19 @@ class TestAntConnectionApp extends Application.AppBase
 
     function debugString(heartData as ANTPlusHeartRateSensor.HeartData) as String{
         var referenceTimeDifference = ( (heartData.getRegisterTime()-startTime)/1000.0  ).format("%.2f");// in seconds
-        return heartData.getCurrentBeatCount()+"-"+referenceTimeDifference+"-"+heartData.getHeartRate()+"-"+heartData.getTimeDifference();
+        var hrv = heartData.getTimeDifference();
+        var beatCount = heartData.getCurrentBeatCount();
+        var heartRate = heartData.getHeartRate();
+        var message = beatCount+"-"+referenceTimeDifference+"-"+heartRate+"-"+hrv;
+        if(previousBeatNumber!=null){
+            if(previousBeatNumber == beatCount){
+                //data is repeat from previous call
+                message = "repeat info";
+            }
+        }
+        previousBeatNumber = beatCount;
+        return message;
+
     }
 
     function sensorPingTimer(){
@@ -55,6 +69,9 @@ class TestAntConnectionApp extends Application.AppBase
             var latestHeartData = sensor.popLatestHeartData();
             if( latestHeartData != null ){
                 addMsg(debugString(latestHeartData));
+            }
+            else{
+                addMsg("no new info");
             }
         }
     }

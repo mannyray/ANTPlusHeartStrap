@@ -41,8 +41,8 @@ class TestAntConnectionView extends Ui.View
             var delegate;
             menu.setTitle("Menu");
             menu.addItem("100ms ping", :one_hundred_ping);
-            menu.addItem("callback every event", :callback_approach);
-            menu.addItem("callback only new event", :callback_approach_every);
+            menu.addItem("callback only new event", :callback_approach);
+            menu.addItem("callback every event", :callback_approach_every);
             menu.addItem("Exit", :exit);
             delegate = new MyMenuDelegate(setupReadyFunction);
             Ui.pushView(menu, delegate, WatchUi.SLIDE_RIGHT);
@@ -65,6 +65,7 @@ class TestAntConnectionView extends Ui.View
             dc.drawText(dc.getWidth()/2, y, fnt, rgmsg[i], Gfx.TEXT_JUSTIFY_CENTER);
             y -= cyLine;
         }
-    }
 
+        dc.drawText(dc.getWidth()/2, 40, fnt, "msg#:H#-t(s)-HR-HRV(ms)", Gfx.TEXT_JUSTIFY_CENTER);
+    }
 }
