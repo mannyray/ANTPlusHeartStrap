@@ -6,7 +6,8 @@ import Toybox.Lang;
 //-----------------------------------------------------------------------------
 class TestAntConnectionApp extends Application.AppBase 
 {
-    var timer = new Ui.Timer.Timer();
+    var searchTimer = new Ui.Timer.Timer();
+    var pingTimer = new Ui.Timer.Timer();
     var sensor;
     var startTime = 0;
 
@@ -29,9 +30,10 @@ class TestAntConnectionApp extends Application.AppBase
         if(isAutomaticCallBackEnabled){
             sensor.setCallback(method(:callbackFunction),forCallBackreturnEachCommunicationEvent);
         }
+        searchTimer.start( method(:onSearchTimerTic),100,true);
 
         if(isAutomaticCallBackEnabled == false){
-            timer.start( method(:onTimerTic),100,true);
+            pingTimer.start( method(:sensorPingTimer),100,true);
         }
         startTime = System.getTimer();
     }
@@ -47,20 +49,26 @@ class TestAntConnectionApp extends Application.AppBase
         return heartData.getCurrentBeatCount()+"-"+referenceTimeDifference+"-"+heartData.getHeartRate()+"-"+heartData.getTimeDifference();
     }
 
+    function sensorPingTimer(){
+        if (!sensor.searchingForSensor())
+        {
+            var latestHeartData = sensor.popLatestHeartData();
+            if( latestHeartData != null ){
+                addMsg(debugString(latestHeartData));
+            }
+        }
+    }
+
     //---------------------------------
-    function onTimerTic() //every 100 milliseconds
+    function onSearchTimerTic() //every 100 milliseconds
     {
         if (sensor.searchingForSensor())
         {
             // calls Ui.requestUpdate()
             addMsg("searching...");
         }
-        else
-        {
-            var latestHeartData = sensor.popLatestHeartData();
-            if( latestHeartData != null ){
-                addMsg(debugString(latestHeartData));
-            }
+        else{
+            searchTimer.stop();
         }
     }
 
