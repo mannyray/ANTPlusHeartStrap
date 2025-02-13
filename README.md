@@ -2,7 +2,7 @@
 
 In this repository we provide code for connecting your ANT+ heart strap to your garmin watch.
 
-![](assets/watch_strap.jpeg)
+<center><img src="assets/watch_strap.jpeg" width=75%></center>
 
 ## Library usage:
 
@@ -22,7 +22,7 @@ The library (or as Garmin calls them monkey barrels) is located in `ANTPlustHear
 
    In addition, you will have to add a `barrels.jungle` file of the format:
 
-   ```
+   ```bash
    # Do not hand edit this file. To make changes run the
    # "Configure Monkey Barrels" command.
     
@@ -34,7 +34,7 @@ The library (or as Garmin calls them monkey barrels) is located in `ANTPlustHear
 
    Upon starting the app, we create the sensor object:
    
-   ```
+   ```javascript
    function onStart(state) 
    {
       sensor = new ANTPlusHeartRateSensor.HeartStrapSensor();
@@ -43,12 +43,12 @@ The library (or as Garmin calls them monkey barrels) is located in `ANTPlustHear
    
    Upon initializing the app, we create a function that will be regularly called that will pull latest sensor data every 100 milliseconds:
 
-   ```
+   ```javascript
    timer.start( method(:onTimerTic),100,true);
    ```
    
    The function will look something like:
-   ```
+   ```javascript
    function onTimerTic() //every 100 milliseconds
     {
         if (sensor.searchingForSensor())
@@ -67,7 +67,7 @@ The library (or as Garmin calls them monkey barrels) is located in `ANTPlustHear
    ```
    where once connected (upon `sensor.searchingForSensor()` evaluating to `false`), we pop the latest heart beat data (if it is available) via `popLatestHeartData()` and do something with it. No information can be available if our sensor is returning the same heart beat event information (due to sensor returning information four times a second which may be more frequent than your heart rate) or we are pinging the sensor via `onTimerTic` more frequently than available information ( in our case every `100 milliseconds` compared to sensor communicating every `250 milliseconds`).   In our case, we just print some debug information via function:
    
-   ```
+   ```javascript
    function debugString(heartData as ANTPlusHeartRateSensor.HeartData) as String{
       ...
    }
@@ -76,12 +76,13 @@ The library (or as Garmin calls them monkey barrels) is located in `ANTPlustHear
 
 4. Setting up your strap to be ready for connecting to your app (something that had to be done to Garmin's Hrm-Pro Plus Heart Rate Sensor - see [pull request](https://github.com/mannyray/ANTPlusHeartStrap/pull/1) for details) by disconnecting strap from watch:
 
-   ![](assets/disconnect.gif)
+<center><img src="assets/disconnect.gif" width=75%></center>
+
 
 5. Building, deploying and running your app. `sample_app`'s directory generates the following experience. We are printing
 the current heart beat count, the time (in seconds) from app start, the heart rate according to strap, and the time difference from the previous heart beat event. To understand what data you can extract from the `HeartData` object, go to `ANTPlusHeartRateSensor/HeartData.mc`.
-
-   ![](assets/running_app.gif)
+   
+   <center><img src="assets/running_app.gif" width=75%></center>
 
 6. Now that you have the basics, you can either build on top of the `sample_app` or import the library to your own code and continue your own adventure!
 
@@ -91,7 +92,7 @@ The above instructions are for a setup where a separate checker that runs every 
 
 3. Upon starting the app, we create the sensor object:
       
-   ```
+   ```javascript
    function onStart(state) 
    {
       sensor = new ANTPlusHeartRateSensor.HeartStrapSensor();
@@ -101,7 +102,7 @@ The above instructions are for a setup where a separate checker that runs every 
    
    where we define the callback function as
    
-   ```
+   ```javascript
    function callbackFunction(heartData as ANTPlusHeartRateSensor.HeartData) as Void{
         // addMsg calls Ui.requestUpdate();
         addMsg(debugString(heartData));

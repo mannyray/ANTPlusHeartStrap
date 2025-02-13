@@ -11,11 +11,25 @@ class TestAntConnectionApp extends Application.AppBase
     var startTime = 0;
 
     var isAutomaticCallBackEnabled = false;
+    var forCallBackreturnEachCommunicationEvent = false;
+    var menuBeingDecidedOn = true;
 
     //-------------------------------------------
     function initialize() 
     {
         AppBase.initialize();
+    }
+
+    function setup(automaticCallBack as Boolean, everyCommunicationEvent as Boolean){
+        isAutomaticCallBackEnabled = automaticCallBack;
+        forCallBackreturnEachCommunicationEvent = everyCommunicationEvent;
+
+
+        sensor = new ANTPlusHeartRateSensor.HeartStrapSensor();
+        if(isAutomaticCallBackEnabled){
+            sensor.setCallback(method(:callbackFunction),forCallBackreturnEachCommunicationEvent);
+        }
+
         if(isAutomaticCallBackEnabled == false){
             timer.start( method(:onTimerTic),100,true);
         }
@@ -53,10 +67,7 @@ class TestAntConnectionApp extends Application.AppBase
     //-------------------------------------------
     function onStart(state) 
     {
-        sensor = new ANTPlusHeartRateSensor.HeartStrapSensor();
-        if(isAutomaticCallBackEnabled){
-            sensor.setCallback(method(:callbackFunction));
-        }
+        
     }
 
     //-------------------------------------------
@@ -68,7 +79,7 @@ class TestAntConnectionApp extends Application.AppBase
     //-------------------------------------------
     function getInitialView() 
     {
-        return [ new TestAntConnectionView(), new TestAntConnectionDelegate() ];
+        return [ new TestAntConnectionView(method(:setup)), new TestAntConnectionDelegate() ];
     }
 
 }
