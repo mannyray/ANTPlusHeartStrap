@@ -31,8 +31,8 @@ module ANTPlusHeartRateSensor {
         is returning the same data as previously. If it is the same data then we keep the
         previousHeartData the same and do not refresh the returnHeartData.
         */
-        hidden var returnHeartData as HeartData = null;
-        hidden var previousHeartData as HeartData = null;
+        hidden var returnHeartData as HeartData or Null = null;
+        hidden var previousHeartData as HeartData or Null= null;
 
         hidden var searching as Boolean;
         hidden var deviceCfg as Ant.DeviceConfig;
@@ -101,11 +101,12 @@ module ANTPlusHeartRateSensor {
         }
         
         //-----------------------------------------------------
-        function open() as Void 
+        function open() as Boolean
         {
             // Open the channel
             GenericChannel.open();
             searching = true;
+            return true;
         }
 
         //-----------------------------------------------------
@@ -115,7 +116,7 @@ module ANTPlusHeartRateSensor {
         }
 
         //-----------------------------------------------------
-        function popLatestHeartData() as HeartData{
+        function popLatestHeartData() as HeartData or Null{
             if(callbackFunction == null){
                 var tmp = returnHeartData;
                 returnHeartData = null;

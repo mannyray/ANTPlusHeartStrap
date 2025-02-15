@@ -19,6 +19,15 @@ The library (or as Garmin calls them monkey barrels) is located in `ANTPlustHear
            <iq:depends name="ANTPlusHeartRateSensor" version="0.0.0"/>
    </iq:barrels>
    ```
+   
+   and include ANT related permissions:
+   
+   ```xml
+   <iq:permissions>
+        <iq:uses-permission id="Ant"/>
+        ...
+    </iq:permissions>
+   ```
 
    In addition, you will have to add a `barrels.jungle` file of the format:
 
@@ -116,16 +125,7 @@ Using this approach, we don't have to call a function `onTimerTic` every `100 mi
 To toggle between the approaches in `sample_app`, you can fire up the app and choose the following:
 
 
-<style>
-table th:first-of-type {
-    width: 75%;
-}
-table th:nth-of-type(2) {
-    width: 50%;
-}
-</style>
-
-| Description  | Demo|
+| Demo⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀  | Description|
 | ------------- | ------------- |
 | <center><img src="assets/demo/every_100.gif" width=75%></center>  | Pinging the ANTPlusHeartRateSensor object every `100`ms to see if there is new data saved from the heart strap| 
 | <center><img src="assets/demo/callback_new.gif" width=75%></center> | Setting up a call back option with `ANTPlusHeartRateSensor` to only get called with new data  | 
