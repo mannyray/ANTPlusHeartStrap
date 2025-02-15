@@ -146,6 +146,10 @@ module ANTPlusHeartRateSensor {
             registerTime is not sufficient for comparison as for different times, the heart strap
             might returtn the exact same heart beat data (i.e. same heartbeatcount).
             */
+            if(heartData == null){
+                return false;
+            }
+
             return heartData.getCurrentBeatCount() == getCurrentBeatCount();
         }
     }

@@ -145,38 +145,24 @@ module ANTPlusHeartRateSensor {
                 cMsg = (cMsg + 1) %1000;
 
                 var heartData = new HeartData(payload,previousHeartData);
-                if( previousHeartData != null){
                     
-                    // we check for previousHeartData being different from new heartData
-                    // in case we are being sent repeat data from the ant+ strap
-                    if(!heartData.isEqualTo(previousHeartData)){
-                        previousHeartData = heartData;
-                        if( callbackFunction == null){
-                            returnHeartData = heartData;
-                        }
-                        else{
-                            callbackFunction.invoke(heartData);
-                        }
-                    }
-                    else{
-                        if (returnEachCommunicationEvent and callbackFunction!=null){
-                            // the data is stale, but due to returnEachCommunicationEvent,
-                            // we pipe it back anyways
-                            callbackFunction.invoke(heartData);
-                        }
-                        returnHeartData = null;
-                    }
-                }
-                else{
-                    // only happens at the very beginning upon our first heart beat recording
-                    previousHeartData = heartData;
-                    if( callbackFunction == null){
-                        returnHeartData = heartData;
-                    }
-                    else{
+                // we check for previousHeartData being different from new heartData
+                // in case we are being sent repeat data from the ant+ strap
+                if(!heartData.isEqualTo(previousHeartData)){
+                    if( callbackFunction != null){
                         callbackFunction.invoke(heartData);
                     }
+                    returnHeartData = heartData;
                 }
+                else{
+                    if (returnEachCommunicationEvent and callbackFunction!=null){
+                        // the data is stale, but due to returnEachCommunicationEvent,
+                        // we pipe it back anyways
+                        callbackFunction.invoke(heartData);
+                    }
+                    returnHeartData = null;
+                }
+                previousHeartData = heartData;
             } 
             else if(Ant.MSG_ID_CHANNEL_RESPONSE_EVENT == msg.messageId) 
             {
