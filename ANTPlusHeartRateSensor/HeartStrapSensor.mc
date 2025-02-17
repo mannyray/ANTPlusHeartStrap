@@ -2,6 +2,7 @@ using Toybox.Ant;
 using Toybox.Time;
 import Toybox.Lang;
 typedef Method as Toybox.Lang.Method;
+import Toybox.System;
 
 module ANTPlusHeartRateSensor {
 
@@ -45,6 +46,11 @@ module ANTPlusHeartRateSensor {
 
         hidden var callbackFunction = null;
 
+        var previousTimeStamp = 0;
+
+        var messagesAfterConnected = 0;
+        var failRXMessages = 0;
+
         //-----------------------------------------------------
         function initialize() 
         {
@@ -53,7 +59,7 @@ module ANTPlusHeartRateSensor {
 
             // Get the channel
             chanAssign = new Ant.ChannelAssignment(
-                Ant.CHANNEL_TYPE_RX_NOT_TX, //!!!0
+                Ant.CHANNEL_TYPE_RX_ONLY, //!!!0
                 Ant.NETWORK_PLUS);
             GenericChannel.initialize(method(:onMessage), chanAssign);
 
@@ -129,9 +135,18 @@ module ANTPlusHeartRateSensor {
 
         //-----------------------------------------------------
         function onMessage(msg as Ant.Message) as Void
-        {
+        {   
+            var curTimeStamp = System.getTimer();
+            System.println("ms since last msg"+(curTimeStamp - previousTimeStamp) + ", msg id" + msg.messageId);
+            System.println("msgs "+messagesAfterConnected+", rx_fail "+failRXMessages);
+
+            previousTimeStamp = curTimeStamp;
             // Parse the payload
             var payload = msg.getPayload();
+
+            if(searching == false){
+                messagesAfterConnected = messagesAfterConnected + 1;
+            }
 
             if( Ant.MSG_ID_BROADCAST_DATA == msg.messageId ) 
             {
@@ -166,16 +181,27 @@ module ANTPlusHeartRateSensor {
             } 
             else if(Ant.MSG_ID_CHANNEL_RESPONSE_EVENT == msg.messageId) 
             {
+                System.println("MSG_ID_CHANNEL_RESPONSE_EVENT");
                 if (Ant.MSG_ID_RF_EVENT == (payload[0] & 0xFF)) 
                 {
+                    System.println("MSG_ID_RF_EVENT");
                     if (Ant.MSG_CODE_EVENT_CHANNEL_CLOSED == (payload[1] & 0xFF)) 
                     {
+                        System.println("MSG_CODE_EVENT_CHANNEL_CLOSED");
                         // Channel closed, re-open
                         open();
                     } 
                     else if( Ant.MSG_CODE_EVENT_RX_FAIL_GO_TO_SEARCH  == (payload[1] & 0xFF) ) 
                     {
+                        System.println("MSG_CODE_EVENT_RX_FAIL_GO_TO_SEARCH");
                         searching = true;
+                    }
+                    else if(Ant.MSG_CODE_EVENT_RX_FAIL  == (payload[1] & 0xFF)){
+                            System.println("NEW PAYLOAD " + (payload[1] & 0xFF));
+                            failRXMessages = failRXMessages + 1;
+                    }
+                    else{
+
                     }
                 } 
                 else 
