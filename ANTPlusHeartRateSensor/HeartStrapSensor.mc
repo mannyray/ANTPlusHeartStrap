@@ -5,6 +5,8 @@ typedef Method as Toybox.Lang.Method;
 
 module ANTPlusHeartRateSensor {
 
+    var WILDCARD_SEARCH = 0;
+
     class HeartStrapSensor extends Ant.GenericChannel 
     {
         //---------------------------------
@@ -13,10 +15,6 @@ module ANTPlusHeartRateSensor {
         // frequency for four times a second. Maximum rate as defined in 
         // "ANT+ Device Profile HEART RATE MONITOR" document
         hidden const rgDevPeriod as Number = 8070; 
-
-        hidden var chanAssign as Ant.ChannelAssignment;
-
-        hidden var startTime as Number  = 0;
 
         /*
         Two separate variables for storing incoming HeartData.
@@ -37,22 +35,17 @@ module ANTPlusHeartRateSensor {
         hidden var searching as Boolean;
         hidden var deviceCfg as Ant.DeviceConfig;
         
-        hidden var idSearch as Number;
         hidden var antid as Number=0;
-        hidden var cMsg as Number = 0;
 
         hidden var returnEachCommunicationEvent = false;
 
         hidden var callbackFunction = null;
 
         //-----------------------------------------------------
-        function initialize() 
+        function initialize(id as Toybox.Lang.Number) 
         {
-            idSearch = 0;
-            startTime = System.getTimer();
-
             // Get the channel
-            chanAssign = new Ant.ChannelAssignment(
+            var chanAssign = new Ant.ChannelAssignment(
                 Ant.CHANNEL_TYPE_RX_NOT_TX, //!!!0
                 Ant.NETWORK_PLUS);
             GenericChannel.initialize(method(:onMessage), chanAssign);
@@ -61,7 +54,7 @@ module ANTPlusHeartRateSensor {
 
             // Set the configuration
             deviceCfg = new Ant.DeviceConfig( {
-                :deviceNumber => idSearch,                 //Wildcard our search
+                :deviceNumber => id,                 
                 :deviceType => rgDevType,
                 :transmissionType => 0,
                 :messagePeriod => rgDevPeriod,
@@ -98,6 +91,11 @@ module ANTPlusHeartRateSensor {
         //-----------------------------------------------------
         function searchingForSensor() as Boolean{
             return searching;
+        }
+
+        //-----------------------------------------------------
+        function getDeviceId() as Number{
+            return antid;
         }
         
         //-----------------------------------------------------
@@ -142,7 +140,6 @@ module ANTPlusHeartRateSensor {
                     deviceCfg = GenericChannel.getDeviceConfig();
                     antid = msg.deviceNumber;
                 }
-                cMsg = (cMsg + 1) %1000;
 
                 var heartData = new HeartData(payload,previousHeartData);
                     

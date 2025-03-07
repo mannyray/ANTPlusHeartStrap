@@ -27,8 +27,7 @@ class TestAntConnectionApp extends Application.AppBase
         isAutomaticCallBackEnabled = automaticCallBack;
         forCallBackreturnEachCommunicationEvent = everyCommunicationEvent;
 
-
-        sensor = new ANTPlusHeartRateSensor.HeartStrapSensor();
+        sensor = new ANTPlusHeartRateSensor.HeartStrapSensor(ANTPlusHeartRateSensor.WILDCARD_SEARCH);
         if(isAutomaticCallBackEnabled){
             sensor.setCallback(method(:callbackFunction),forCallBackreturnEachCommunicationEvent);
         }
@@ -85,6 +84,7 @@ class TestAntConnectionApp extends Application.AppBase
             addMsg("searching...");
         }
         else{
+            addMsg("Connected to "+sensor.getDeviceId());
             searchTimer.stop();
         }
     }
