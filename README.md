@@ -46,11 +46,18 @@ The library (or as Garmin calls them monkey barrels) is located in `ANTPlustHear
    ```javascript
    function onStart(state) 
    {
-      sensor = new ANTPlusHeartRateSensor.HeartStrapSensor();
+      sensor = new ANTPlusHeartRateSensor.HeartStrapSensor(
+        ANTPlusHeartRateSensor.WILDCARD_SEARCH
+      );
    }
    ```
    
-   Upon initializing the app, we create a function that will be regularly called that will pull latest sensor data every 100 milliseconds:
+   `ANTPlusHeartRateSensor.WILDCARD_SEARCH` allows us to connect to the first heart strap we find - this is appropriate if you expect to run your watch app just near the one strap and thus don't care to specify. To determine your specific strap id, you can run the app in `sample_app` of this repo's root directory to see the line `4: Connected to 10248` (below) in which case you would replace `ANTPlusHeartRateSensor.WILDCARD_SEARCH` with number `10248` if wanting to connect to the specific strap.
+   
+   <center><img src="assets/connect.jpeg" width=50%></center>
+   
+   
+4. Upon initializing the app, we create a function that will be regularly called that will pull latest sensor data every 100 milliseconds:
 
    ```javascript
    timer.start( method(:onTimerTic),100,true);
@@ -83,17 +90,17 @@ The library (or as Garmin calls them monkey barrels) is located in `ANTPlustHear
    ```
    to understand what data you can extract from the `HeartData` object, go to `ANTPlusHeartRateSensor/HeartData.mc`.
 
-4. Setting up your strap to be ready for connecting to your app (something that had to be done to Garmin's Hrm-Pro Plus Heart Rate Sensor - see [pull request](https://github.com/mannyray/ANTPlusHeartStrap/pull/1) for details) by disconnecting strap from watch:
+5. Setting up your strap to be ready for connecting to your app (something that had to be done to Garmin's Hrm-Pro Plus Heart Rate Sensor - see [pull request](https://github.com/mannyray/ANTPlusHeartStrap/pull/1) for details) by disconnecting strap from watch:
 
 <center><img src="assets/disconnect.gif" width=75%></center>
 
 
-5. Building, deploying and running your app. `sample_app`'s directory generates the following experience. We are printing
+6. Building, deploying and running your app. `sample_app`'s directory generates the following experience. We are printing
 the current heart beat count, the time (in seconds) from app start, the heart rate according to strap, and the time difference from the previous heart beat event. To understand what data you can extract from the `HeartData` object, go to `ANTPlusHeartRateSensor/HeartData.mc`.
    
    <center><img src="assets/running_app.gif" width=75%></center>
 
-6. Now that you have the basics, you can either build on top of the `sample_app` or import the library to your own code and continue your own adventure!
+7. Now that you have the basics, you can either build on top of the `sample_app` or import the library to your own code and continue your own adventure!
 
 ### Library usage addendum
 
