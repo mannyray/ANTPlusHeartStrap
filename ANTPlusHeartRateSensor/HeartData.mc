@@ -53,9 +53,15 @@ module ANTPlusHeartRateSensor {
         Assuming the timer starts at zero, this will happen ~25 days after a reboot, and every ~50 days thereafter.
         */
         hidden var registerTime as Number = 0;
+
+        // ant id of the sensor from which the heart data comes from
+        hidden var sensorId as Number = 0;
         
 
-        function initialize(payload as Lang.Array<Lang.Number>, previousHeartData as HeartData){
+        function initialize(payload as Array<Number>, previousHeartData as HeartData, antId as Number){
+
+            sensorId = antId;
+
             // payload is assumed to be an array of length 8
             currentHeartRate = payload[PAYLOAD_HEART_RATE_INDEX];
             currentBeatCount = payload[PAYLOAD_BEAT_COUNT];
@@ -116,6 +122,10 @@ module ANTPlusHeartRateSensor {
 
         function getHeartRate() as Number {
             return currentHeartRate;
+        }
+
+        function getDeviceId() as Number {
+            return sensorId;
         }
 
         hidden function differenceFromPreviousBeat(firstBeat as HeartData) as Number{

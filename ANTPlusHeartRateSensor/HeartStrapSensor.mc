@@ -9,9 +9,11 @@ module ANTPlusHeartRateSensor {
     class HeartStrapError {
         hidden var registerTime as Number = 0;
         hidden var errorCode as Number = 0;
-        function initialize(code as Number){
+        hidden var sensorId as Number = 0;
+        function initialize(code as Number, antid as Number){
             registerTime = System.getTimer();
             errorCode = code;
+            sensorId = antid;
         }
         function getErrorCode() as Number{
             return errorCode;
@@ -24,6 +26,9 @@ module ANTPlusHeartRateSensor {
         }
         function getRegisterTime() as Number{
             return registerTime;
+        }
+        function getDeviceId() as Number{
+            return sensorId;
         }
     }
 
@@ -164,7 +169,7 @@ module ANTPlusHeartRateSensor {
                     antid = msg.deviceNumber;
                 }
 
-                var heartData = new HeartData(payload,previousHeartData);
+                var heartData = new HeartData(payload,previousHeartData,antid);
                     
                 // we check for previousHeartData being different from new heartData
                 // in case we are being sent repeat data from the ant+ strap
@@ -206,7 +211,7 @@ module ANTPlusHeartRateSensor {
                         */
                         if(!searching){
                             if(returnEachCommunicationEvent and callbackFunction!=null){
-                                callbackFunction.invoke(new HeartStrapError(Ant.MSG_CODE_EVENT_RX_FAIL));
+                                callbackFunction.invoke(new HeartStrapError(Ant.MSG_CODE_EVENT_RX_FAIL,antid));
                             }
                         }
                     }
