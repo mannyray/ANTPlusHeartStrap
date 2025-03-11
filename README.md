@@ -81,7 +81,7 @@ The library (or as Garmin calls them monkey barrels) is located in `ANTPlustHear
         }
     }
    ```
-   where once connected (upon `sensor.searchingForSensor()` evaluating to `false`), we pop the latest heart beat data (if it is available) via `popLatestHeartData()` and do something with it. No information can be available if our sensor is returning the same heart beat event information (due to sensor returning information four times a second which may be more frequent than your heart rate) or we are pinging the sensor via `onTimerTic` more frequently than available information ( in our case every `100 milliseconds` compared to sensor communicating every `250 milliseconds`).   In our case, we just print some debug information via function:
+   where once connected (upon `sensor.searchingForSensor()` evaluating to `false`), we pop the latest heart beat data (if it is available) via `popLatestHeartData()` and do something with it. No information can be available if our sensor is returning the same heart beat event information (due to sensor returning information four times a second which may be more frequent than your heart rate) or we are pinging the sensor via `onTimerTic` more frequently than available information ( in our case every `100 milliseconds` compared to sensor communicating every `246 milliseconds` (`4.06Hz`)). In our case, we just print some debug information via function:
    
    ```javascript
    function debugString(heartData as ANTPlusHeartRateSensor.HeartData) as String{
@@ -119,15 +119,28 @@ The above instructions are for a setup where a separate checker that runs every 
    where we define the callback function as
    
    ```javascript
-   function callbackFunction(heartData as ANTPlusHeartRateSensor.HeartData) as Void{
+   function callbackFunction(heartData as ANTPlusHeartRateSensor.HeartData or
+        ANTPlusHeartRateSensor.HeartStrapError ) as Void{
+            
+        if(heartData instanceof ANTPlusHeartRateSensor.HeartStrapError){
+            addMsg("Obtained Error " + heartData.getErrorCodeString());
+            return;
+        }
         // addMsg calls Ui.requestUpdate();
         addMsg(debugString(heartData));
-   }
+    }
    ```
    
-   with `debugString` defined above. Boolean `returnEachCommunicationEvent` is true if you want the callback to be called back with every heart beat data that is returned from the strap which happens at frequency of every `250`ms, regardless if the data is repeat or not. We set  `returnEachCommunicationEvent` to false if you only want call backs when there is new heart beat data. The only real use of setting `returnEachCommunicationEvent` to true is if you care to determine the exact time stamps of when the heart strap is communicating at which can be determined via `heartData.getRegisterTime()`.
+   The callback function usage is differentiated by the variable `returnEachCommunicationEvent`
    
-Using this approach, we don't have to call a function `onTimerTic` every `100 milliseconds`, but will call `callbackFunction` only once fresh heart beat data comes in from the heart beat sensor which is set to communicate at a rate of four times a second with the app. For a heart rate of 60 beats per minute that means that only one of the four communications will give fresh heart beat data meaning `callBackFunction` is called once a second. Thus we have reduced functions calls from 10 times a second to one a second.
+   | `returnEachCommunicationEvent` value| Description|
+   | ------------- | ------------- |
+   |`false` | The sensor code will call `callbackFunction` only when the heart strap returns a new heart beat event. The sensor communicates every `246 milliseconds` and not every communication event returns a new event. When there is no new event, the strap returns the previous heart beat event (e.g. your heart rate occurs at lower frequency than every `246 milliseconds`). By setting `returnEachCommunicationEvent` to `false` we only call the `callBackFunction` when the event is new.<br/><br/> `ANTPlusHeartRateSensor.HeartStrapError` type object will never be returned.<br/><br/> Using this approach, we don't have to call a function `onTimerTic` every `100 milliseconds`, but will call `callbackFunction` only once fresh heart beat data comes in from the heart beat sensor. For a heart rate of 60 beats per minute that means that only one of the four communications (every `246 milliseconds`) will give fresh heart beat data meaning `callBackFunction` is called once a second. Thus we have reduced functions calls from 10 times a second to once a second.|
+   |`true` | We now have the sensor code call the `callbackFunction` everytime the strap communicates with the watch - every `246 milliseconds`. This will include new events and repeat events. Furthermore, we can also return `ANTPlusHeartRateSensor.HeartStrapError` type objects as the strap sometimes returns an error (see [garmin forum](https://forums.garmin.com/developer/connect-iq/f/discussion/404209/ant-heart-strap-failing-to-receive-some-packets-in-watch-app#pifragment-1298=2) for details).<br/><br/> The only real use of setting `returnEachCommunicationEvent` to true is if you care to determine the exact time stamps of when the heart strap is communicating which can be determined via `heartData.getRegisterTime()`. <br/><br/>It is up to the user to determine if the `callbackFunction`'s argument is a `HeartStrapError` or `HeartData` object and if the `HeartData` object is different from the previous `HeartData` object.  |
+   
+
+
+# Test app
 
 To toggle between the approaches in `sample_app`, you can fire up the app and choose the following:
 
@@ -136,7 +149,7 @@ To toggle between the approaches in `sample_app`, you can fire up the app and ch
 | ------------- | ------------- |
 | <center><img src="assets/demo/every_100.gif" width=75%></center>  | Pinging the ANTPlusHeartRateSensor object every `100`ms to see if there is new data saved from the heart strap| 
 | <center><img src="assets/demo/callback_new.gif" width=75%></center> | Setting up a call back option with `ANTPlusHeartRateSensor` to only get called with new data  | 
-| <center><img src="assets/demo/callback_every.gif" width=75%></center> | Setting up a call back option with `ANTPlusHeartRateSensor` to get called back with every strap communication event (every `250`ms)   |
+| <center><img src="assets/demo/callback_every.gif" width=75%></center> | Setting up a call back option with `ANTPlusHeartRateSensor` to get called back with every strap communication event (every `246`ms)   |
 
 
 

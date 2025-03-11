@@ -39,7 +39,13 @@ class TestAntConnectionApp extends Application.AppBase
         startTime = System.getTimer();
     }
     
-    function callbackFunction(heartData as ANTPlusHeartRateSensor.HeartData) as Void{
+    function callbackFunction(heartData as ANTPlusHeartRateSensor.HeartData or
+        ANTPlusHeartRateSensor.HeartStrapError ) as Void{
+            
+        if(heartData instanceof ANTPlusHeartRateSensor.HeartStrapError){
+            addMsg("Obtained Error " + heartData.getErrorCodeString());
+            return;
+        }
         // addMsg calls Ui.requestUpdate();
         addMsg(debugString(heartData));
     }

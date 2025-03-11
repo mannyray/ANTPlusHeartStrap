@@ -5,6 +5,29 @@ typedef Method as Toybox.Lang.Method;
 
 module ANTPlusHeartRateSensor {
 
+
+    class HeartStrapError {
+        hidden var registerTime as Number = 0;
+        hidden var errorCode as Number = 0;
+        function initialize(code as Number){
+            registerTime = System.getTimer();
+            errorCode = code;
+        }
+        function getErrorCode() as Number{
+            return errorCode;
+        }
+        function getErrorCodeString() as String{
+            if(errorCode == Ant.MSG_CODE_EVENT_RX_FAIL){
+                return "MSG_CODE_EVENT_RX_FAIL";
+            }
+            return "unknown";
+        }
+        function getRegisterTime() as Number{
+            return registerTime;
+        }
+    }
+
+
     var WILDCARD_SEARCH = 0;
 
     class HeartStrapSensor extends Ant.GenericChannel 
@@ -79,7 +102,7 @@ module ANTPlusHeartRateSensor {
         //
         // callEachEvent is a boolean. If true, then we return heart data regardless if it is
         // new or not
-        function setCallback(callback as Method(heartData as HeartData) as Void, callEachEvent as Toybox.Lang.Boolean) as Void{
+        function setCallback(callback as Method(heartData as HeartData or HeartStrapError) as Void, callEachEvent as Toybox.Lang.Boolean) as Void{
             callbackFunction = callback;
 
             returnEachCommunicationEvent = callEachEvent;
@@ -173,6 +196,19 @@ module ANTPlusHeartRateSensor {
                     else if( Ant.MSG_CODE_EVENT_RX_FAIL_GO_TO_SEARCH  == (payload[1] & 0xFF) ) 
                     {
                         searching = true;
+                    }
+                    else if(Ant.MSG_CODE_EVENT_RX_FAIL  == (payload[1] & 0xFF)){
+                        // see https://forums.garmin.com/developer/connect-iq/f/discussion/404209/ant-heart-strap-failing-to-receive-some-packets-in-watch-app#pifragment-1298=2 for details
+                        /*
+                            This is for cases when the strap is communicating but for some reason returning an error. 
+                            We bubble this up to the user of this monkey barrel _if_ caller requested callback for each 
+                            strap's communication's event (including errors)
+                        */
+                        if(!searching){
+                            if(returnEachCommunicationEvent and callbackFunction!=null){
+                                callbackFunction.invoke(new HeartStrapError(Ant.MSG_CODE_EVENT_RX_FAIL));
+                            }
+                        }
                     }
                 } 
                 else 

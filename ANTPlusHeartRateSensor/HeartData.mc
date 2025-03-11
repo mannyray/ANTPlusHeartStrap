@@ -106,15 +106,15 @@ module ANTPlusHeartRateSensor {
             return latestBeatEvent;
         }
 
-        function getTimeDifference()as Number {
+        function getTimeDifference() as Number {
             return timeDifferenceBeetweenBeats;
         }
 
-        function getCurrentBeatCount()as Number {
+        function getCurrentBeatCount() as Number {
             return currentBeatCount;
         }
 
-        function getHeartRate()as Number {
+        function getHeartRate() as Number {
             return currentHeartRate;
         }
 
